@@ -1,66 +1,87 @@
 const axios = require('axios')
 const qs = require('qs')
-const postHandles = {
-  qs(data) {
-    return { data: qs.stringify(data) }
-  },
-  form(data, { headers = {} }) {
-    const formData = new FormData()
-    Object.keys(data).forEach((key) => {
-      formData.append(key, data[key])
-    })
-    return {
-      data: formData,
-      headers: { ...headers, 'Content-Type': 'multipart/form-data' },
-    }
-  },
-  none(data) {
-    return { data }
-  },
-}
-const dataHandles = {
-  get(params) {
-    return { params }
-  },
-  post(data, config, type = 'qs') {
-    return postHandles[type](data, config)
-  },
-}
-function getConfig(url, method, data = {}, options = { type: 'qs' }) {
-  method = method ? method.toLocaleLowerCase() : 'get'
-  const config = {
-    method,
-    url,
-    ...options,
-  }
-  return { ...config, ...dataHandles[method](data, config, options.type) }
-}
-function createRequest(instance) {
-  return function (...argvs) {
-    return new Promise((resolve, reject) => {
-      instance(getConfig(...argvs))
-        .then((res) => {
-          resolve(res.data)
-        })
-        .catch((e) => {
-          reject(e)
-        })
-    })
-  }
-}
+const { ElMessage } = require('element-plus')
+const { Dev, Pro } = require('../config')
 
-export function createHttp(
-  baseConfig = {
-    timeout: 15000,
-    header: { 'Content-Type': 'application/x-www-form-urlencoded' },
+// 判断开发环境
+const development = process.env.NODE_ENV === 'development'
+
+// 创建实例
+const http = axios.create({
+  baseURL: development ? Dev.baseURL : Pro.baseURL, // 实例默认URL地址
+  timeout: 2000000000, // 实例超时时间
+  headers: {
+    'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8', // 默认请求头
   },
-  interceptors
-) {
-  const instance = axios.create(baseConfig)
-  if (interceptors) {
-    instance.interceptors.request.use(...interceptors.request)
-    instance.interceptors.response.use(...interceptors.response)
+})
+
+// 实例请求拦截器
+http.interceptors.request.use(
+  (config) => {
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
   }
-  const request = createRequest(instance)
-  return request
+)
+
+// 实例响应拦截器
+http.interceptors.response.use(
+  (response) => {
+    return response
+  },
+  (error) => {
+    if (error.message.includes('timeout')) {
+      ElMessage.error('请求超时，稍后再试')
+      return Promise.reject(error)
+    }
+    ElMessage.error('网络连接失败')
+    return Promise.reject(error)
+  }
+)
+
+export function request(
+  url,
+  method,
+  params = {},
+  config = {},
+  options = { isQS: true }
+) {
+  // 判断是否为post请求
+  const isPost = method.toLocaleLowerCase() === 'post'
+
+  // 判断提交数据对应的key
+  const paramsKey = isPost ? 'data' : 'params'
+
+  // 是否序列化post请求的数据
+  if (options.isQS && isPost) {
+    params = qs.stringify(params)
+  }
+
+  // 判断是否为post提交表单数据
+  if (options.form && isPost) {
+    const form = new FormData()
+    Object.keys(params).forEach((key) => {
+      form.append(key, params[key])
+    })
+    params = form
+    const ContentType = { 'Content-Type': 'multipart/form-data' } // 设置请求头
+    config.headers
+      ? Object.assign(config.headers, ContentType)
+      : (config.headers = ContentType)
+  }
+
+  // 返回请求结果
+  return http({
+    url,
+    method,
+    [paramsKey]: params,
+    ...config,
+  })
+    .then((res) => {
+      return res.data
+    })
+    .catch((err) => {
+      return Promise.reject(err)
+    })
 }

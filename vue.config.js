@@ -16,5 +16,6 @@ module.exports = {
       .set('apis', resolve('./src/common/apis'))
       .set('plugins', resolve('./src/common/plugins'))
       .set('mixins', resolve('./src/common/mixins'))
+      .set('config', resolve('./src/common/config'))
   },
 }

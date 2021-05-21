@@ -1,26 +1,4 @@
-import { createHttp } from '../utils/http'
-const request = createHttp(undefined, {
-  request: [
-    function (config) {
-      console.log('request')
-      return config
-    },
-    function (e) {
-      console.log(e)
-      return Promise.reject(e)
-    },
-  ],
-  response: [
-    function (response) {
-      console.log('response')
-      return response
-    },
-    function (e) {
-      console.log(e)
-      return Promise.reject(e)
-    },
-  ],
-})
+import { request } from '../utils/http'
 let apis = require.context('./', true, /\.js$/)
 apis = apis.keys().reduce((total, apiPath) => {
   const apiName = apiPath.match(/.*\/(.*)\.js$/)[1]
