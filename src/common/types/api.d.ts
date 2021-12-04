@@ -6,6 +6,7 @@ import compose from '../utils/compose'
 import log from '../utils/compose'
 import debounce from '../utils/debounce'
 import throttle from '../utils/throttle'
+import Str from '../utils/str'
 import { request } from '../utils/http'
 interface Api {
   [index: string]: (
@@ -19,6 +20,7 @@ interface Api {
 }
 
 interface Utils {
+  str:Str
   compose: typeof compose
   log: typeof log
   debounce: typeof debounce
