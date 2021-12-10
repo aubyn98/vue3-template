@@ -1,13 +1,15 @@
 import { createApp } from 'vue'
 import type { ElMessage } from 'element-plus'
-import { Storage } from '../utils/storage'
-import addEventListener from '../utils/addEventListener'
-import compose from '../utils/compose'
-import log from '../utils/compose'
-import debounce from '../utils/debounce'
-import throttle from '../utils/throttle'
-import Str from '../utils/str'
-import { request } from '../utils/http'
+import { Storage } from 'utils/storage'
+import addEventListener from 'utils/addEventListener'
+import compose from 'utils/compose'
+import log from 'utils/compose'
+import debounce from 'utils/debounce'
+import throttle from 'utils/throttle'
+import str from 'utils/str'
+import date from 'utils/date'
+import object from 'utils/object'
+import { request } from 'utils/http'
 interface Api {
   [index: string]: (
     params: any
@@ -20,7 +22,9 @@ interface Api {
 }
 
 interface Utils {
-  str:Str
+  object: typeof object
+  date: typeof date
+  str: typeof str
   compose: typeof compose
   log: typeof log
   debounce: typeof debounce
@@ -38,7 +42,8 @@ interface Info {
 
 declare module '@vue/runtime-core' {
   interface ComponentCustomProperties {
-    $api: () => {}
+    $api: Api
+    $utils: Utils
     $message: typeof ElMessage
   }
 }
