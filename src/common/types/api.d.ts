@@ -9,6 +9,7 @@ import throttle from 'utils/throttle'
 import str from 'utils/str'
 import date from 'utils/date'
 import object from 'utils/object'
+import timer from 'utils/timer'
 import { request } from 'utils/http'
 interface Api {
   [index: string]: (
@@ -22,6 +23,7 @@ interface Api {
 }
 
 interface Utils {
+  timer: typeof timer
   object: typeof object
   date: typeof date
   str: typeof str
